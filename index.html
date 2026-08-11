@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090c0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Forge 2.0</title>
+<style>
+:root{--bg:#090c0f;--panel:#11161b;--panel2:#171e25;--line:#29343e;--text:#f4f7f9;--muted:#a9b3bb;--green:#55d42f;--amber:#f0b85a;--red:#ed6a6a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:18px;line-height:1.4}
+header{position:sticky;top:0;z-index:10;background:rgba(9,12,15,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:15px 16px}
+.brand{display:flex;justify-content:space-between;align-items:end;gap:12px}.brand h1{margin:0;font-size:27px;letter-spacing:.05em}.brand span{font-size:12px;color:var(--muted)}
+main{max-width:900px;margin:auto;padding:15px 15px 104px}section{display:none}.show{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:16px;margin-bottom:13px}.hero{padding:19px}
+.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--muted);font-weight:800}.big{font-size:29px;font-weight:850;line-height:1.12;margin:6px 0}
+h2{font-size:25px}h3{font-size:20px}h2,h3{margin:7px 0 11px}.small{font-size:14px;color:var(--muted)}
+label{display:block;color:var(--muted);font-size:14px;margin:11px 0 5px}
+input,select,textarea{display:block;width:100%;max-width:100%;min-width:0;padding:12px;border-radius:11px;border:1px solid var(--line);background:#0c1115;color:var(--text);font-size:17px}
+input[type=date]{-webkit-appearance:none;appearance:none}textarea{min-height:76px}
+.row{display:flex;gap:9px;min-width:0}.row>*{flex:1;min-width:0}.row>div{min-width:0}
+button{font:inherit}.primary,.secondary,.danger,.pill{border-radius:11px;font-weight:800}.primary{width:100%;padding:13px;border:0;background:var(--green);color:#071106}
+.secondary{width:100%;padding:13px;border:1px solid var(--line);background:var(--panel2);color:var(--text)}.danger{width:100%;padding:13px;border:1px solid #663737;background:#341c1c;color:#ffb4b4}
+.exerciseHead{display:flex;justify-content:space-between;gap:10px;align-items:start}.exerciseHead h3{margin:0}.target{color:var(--green);font-weight:800;font-size:16px}
+.suggestion{background:#0d1712;border:1px solid #285339;border-radius:11px;padding:10px 11px;margin:10px 0;font-size:14px}.suggestion strong{color:var(--green)}
+.setgrid{display:grid;grid-template-columns:42px 1fr 1fr 1fr;gap:7px;align-items:center}.setgrid .head{text-align:center;color:var(--muted);font-size:11px}
+.metricgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.metric{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:12px}.metric small{display:block;color:var(--muted);font-size:12px}.metric b{font-size:23px}
+.historyItem{padding:11px 0;border-bottom:1px solid var(--line)}.historyItem:last-child{border-bottom:0}.divider{height:1px;background:var(--line);margin:15px 0}
+.measureRow{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:7px;align-items:end;margin-bottom:7px}.measureRow label{margin:0 0 5px}.measureRow .name{padding-bottom:11px;font-size:15px}
+.trend{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}.trend:last-child{border:0}
+.chartWrap{height:190px;margin-top:10px}.chartWrap svg{width:100%;height:100%;overflow:visible}.chartLine{fill:none;stroke:var(--green);stroke-width:3}.chartDot{fill:var(--green)}.gridLine{stroke:#26313a;stroke-width:1}
+.bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(9,12,15,.98);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:7px 5px calc(7px + env(safe-area-inset-bottom))}
+.bottomnav button{border:0;background:transparent;color:var(--muted);font-size:10px;padding:5px 1px}.bottomnav button b{display:block;font-size:19px}.bottomnav button.active{color:var(--green)}
+@media(min-width:700px){.metricgrid{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<header><div class="brand"><h1>FORGE</h1><span>LIFT · PROGRESS · MEASURE</span></div></header>
+
+<main>
+<section id="workout" class="show">
+ <div class="card hero">
+   <div class="eyebrow">WORKOUT</div>
+   <div class="row">
+     <div><label>Workout</label><select id="workoutDay"></select></div>
+     <div><label>Date</label><input id="workoutDate" type="date"></div>
+   </div>
+ </div>
+ <div id="exerciseList"></div>
+ <div class="card">
+   <label>Session RPE</label><input id="sessionRpe" type="number" min="1" max="10" step=".5">
+   <label>Notes</label><textarea id="sessionNotes"></textarea>
+   <button class="primary" id="saveWorkout">Save Workout</button>
+ </div>
+</section>
+
+<section id="progress">
+ <div class="card hero"><div class="eyebrow">EXERCISE PROGRESS</div><div class="big">Performance history</div></div>
+ <div class="card"><label>Exercise</label><select id="progressExercise"></select><div id="progressSummary"></div></div>
+ <div class="card"><div class="eyebrow">RECENT PERFORMANCE</div><div id="progressHistory"></div></div>
+</section>
+
+<section id="measurements">
+ <div class="card hero"><div class="eyebrow">MEASUREMENTS</div><div class="big">Body composition & tape</div></div>
+ <div class="card">
+   <label>Date</label><input id="measureDate" type="date">
+   <div class="eyebrow" style="margin-top:16px">WITHINGS SCALE</div>
+   <div class="row">
+     <div><label>Weight (lb)</label><input id="mWeight" type="number" step=".1"></div>
+     <div><label>Body fat %</label><input id="mBf" type="number" step=".1"></div>
+   </div>
+   <div class="row">
+     <div><label>Lean mass %</label><input id="mLean" type="number" step=".1"></div>
+     <div><label>Fat mass %</label><input id="mFat" type="number" step=".1"></div>
+   </div>
+   <div class="eyebrow" style="margin-top:18px">TAPE MEASUREMENTS</div>
+   <div class="small">Enter whole inches and the nearest 1/8 inch.</div>
+   <div id="tapeInputs" style="margin-top:12px"></div>
+   <button class="primary" id="saveMeasurements">Save Measurements</button>
+ </div>
+ <div class="card"><div class="eyebrow">LATEST</div><div id="latestMeasurements"></div></div>
+</section>
+
+<section id="calculator">
+ <div class="card hero"><div class="eyebrow">LOAD CALCULATOR</div><div class="big">Starting-weight estimate</div></div>
+ <div class="card">
+   <label>Exercise</label><select id="calcExercise"></select>
+   <div class="metricgrid" style="margin-top:12px">
+     <div class="metric"><small>Reference</small><b id="refLoad">—</b></div>
+     <div class="metric"><small>Reps</small><b id="refReps">—</b></div>
+     <div class="metric"><small>e1RM</small><b id="ref1rm">—</b></div>
+     <div class="metric"><small>RPE</small><b id="refRpe">—</b></div>
+   </div>
+   <div class="row">
+     <div><label>Target reps</label><input id="targetReps" type="number" min="1" max="30" value="8"></div>
+     <div><label>Target RIR</label><select id="targetRir"><option value="1">1 RIR</option><option value="2" selected>2 RIR</option><option value="3">3 RIR</option></select></div>
+   </div>
+   <label>Round to</label><select id="roundTo"><option value="5" selected>Nearest 5 lb</option><option value="2.5">Nearest 2.5 lb</option><option value="1">Nearest 1 lb</option></select>
+   <div class="suggestion" id="calcResult">Log a set to generate an estimate.</div>
+ </div>
+</section>
+
+<section id="more">
+ <div class="card">
+   <div class="eyebrow">MEASUREMENT TRENDS</div><h2>Trend viewer</h2>
+   <label>Metric</label><select id="trendMetric"></select>
+   <div id="trendStats" class="metricgrid" style="margin-top:12px"></div>
+   <div class="chartWrap"><svg id="trendChart" viewBox="0 0 320 170"></svg></div>
+ </div>
+ <div class="card">
+   <h3>Settings</h3>
+   <div class="row"><div><label>Height — feet</label><input id="heightFt" type="number"></div><div><label>Height — inches</label><input id="heightIn" type="number"></div></div>
+   <label>Upper-body progression increment (lb)</label><input id="upperInc" type="number" step="2.5">
+   <label>Lower-body progression increment (lb)</label><input id="lowerInc" type="number" step="2.5">
+   <button class="primary" id="saveSettings">Save Settings</button>
+ </div>
+ <div class="card">
+   <h3>Backup</h3>
+   <button class="secondary" id="exportData">Export Data</button>
+   <label>Import backup</label><input id="importData" type="file" accept=".json">
+   <div class="divider"></div>
+   <button class="danger" id="resetData">Erase Forge Data</button>
+ </div>
+</section>
+</main>
+
+<nav class="bottomnav">
+<button data-tab="workout" class="active"><b>▥</b>Workout</button>
+<button data-tab="progress"><b>↗</b>Progress</button>
+<button data-tab="measurements"><b>⊕</b>Measure</button>
+<button data-tab="calculator"><b>±</b>Calculator</button>
+<button data-tab="more"><b>•••</b>More</button>
+</nav>
+
+<script>
+const SLOTS={
+ Monday:[
+  {slot:"Squat",variants:["Back Squat","Front Squat","Zercher Squat","Goblet Squat"],def:"Back Squat",range:[5,6],sets:3,group:"lower"},
+  {slot:"Horizontal Press",variants:["DB Bench Press","Barbell Bench Press"],def:"DB Bench Press",range:[6,6],sets:3,group:"upper"},
+  {slot:"Hip Hinge",variants:["Romanian Deadlift"],def:"Romanian Deadlift",range:[6,6],sets:3,group:"lower"},
+  {slot:"Vertical Pull",variants:["Pull-Up"],def:"Pull-Up",range:[6,8],sets:3,group:"upper",pullup:true},
+  {slot:"Vertical Press",variants:["DB Overhead Press","Barbell Overhead Press"],def:"DB Overhead Press",range:[8,8],sets:2,group:"upper"},
+  {slot:"Triceps",variants:["Cable Pressdown"],def:"Cable Pressdown",range:[10,10],sets:2,group:"upper"},
+  {slot:"Curl",variants:["DB Curl","Barbell Curl","EZ-Bar Curl"],def:"DB Curl",range:[10,10],sets:2,group:"upper"}],
+ Wednesday:[
+  {slot:"Single-Leg Squat",variants:["Bulgarian Split Squat"],def:"Bulgarian Split Squat",range:[8,12],sets:3,group:"lower"},
+  {slot:"Incline Press",variants:["Incline DB Bench"],def:"Incline DB Bench",range:[8,12],sets:3,group:"upper"},
+  {slot:"Hip Extension",variants:["Barbell Hip Thrust"],def:"Barbell Hip Thrust",range:[8,12],sets:3,group:"lower"},
+  {slot:"Horizontal Pull",variants:["Chest-Supported DB Row"],def:"Chest-Supported DB Row",range:[8,12],sets:3,group:"upper"},
+  {slot:"Lateral Delt",variants:["DB Lateral Raise"],def:"DB Lateral Raise",range:[12,15],sets:2,group:"upper"},
+  {slot:"Rear Delt",variants:["Face Pull"],def:"Face Pull",range:[12,15],sets:2,group:"upper"},
+  {slot:"Curl",variants:["Hammer Curl","DB Curl","Barbell Curl","EZ-Bar Curl"],def:"Hammer Curl",range:[10,12],sets:2,group:"upper"}],
+ Friday:[
+  {slot:"Squat",variants:["Back Squat","Front Squat","Zercher Squat","Goblet Squat"],def:"Front Squat",range:[12,15],sets:3,group:"lower"},
+  {slot:"Horizontal Press",variants:["DB Bench Press","Barbell Bench Press"],def:"DB Bench Press",range:[12,15],sets:3,group:"upper"},
+  {slot:"Hip Hinge",variants:["Romanian Deadlift"],def:"Romanian Deadlift",range:[10,12],sets:2,group:"lower"},
+  {slot:"Horizontal Pull",variants:["Seated Cable Row"],def:"Seated Cable Row",range:[12,15],sets:3,group:"upper"},
+  {slot:"Vertical Pull",variants:["Lat Pulldown"],def:"Lat Pulldown",range:[12,15],sets:2,group:"upper"},
+  {slot:"Lateral Delt",variants:["DB Lateral Raise"],def:"DB Lateral Raise",range:[15,20],sets:2,group:"upper"},
+  {slot:"Arms",variants:["Rope Pushdown + Curl"],def:"Rope Pushdown + Curl",range:[12,15],sets:2,group:"upper"}]
+};
+
+const TAPE=["Neck","Shoulders","Chest","Biceps (R)","Biceps (L)","Forearms (R)","Forearms (L)","Abs","Waist","Hips","Quads (R)","Quads (L)","Calves (R)","Calves (L)"];
+const FRACS=[["",0],["1/8",.125],["1/4",.25],["3/8",.375],["1/2",.5],["5/8",.625],["3/4",.75],["7/8",.875]];
+const KEY="forge_lift_v2";
+
+let db=JSON.parse(localStorage.getItem(KEY)||"null");
+if(!db){
+ const prior=JSON.parse(localStorage.getItem("forge_lift_v1")||"null")||JSON.parse(localStorage.getItem("forge_v2")||"null");
+ db={workouts:Array.isArray(prior?.workouts)?prior.workouts:[],measurements:[],settings:{upperInc:5,lowerInc:5,heightFt:5,heightIn:10},lastVariants:{}};
+}
+db.workouts||=[];db.measurements||=[];db.settings||={upperInc:5,lowerInc:5,heightFt:5,heightIn:10};db.lastVariants||={};
+
+const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
+const iso=()=>{let d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const dayName=d=>["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][d.getDay()];
+const epley=(w,r)=>r<=1?w:w*(1+r/30);
+const roundLoad=(n,i)=>Math.round(n/i)*i;
+const rangeText=r=>r[0]===r[1]?`${r[0]}`:`${r[0]}–${r[1]}`;
+
+function fmtFrac(v){
+ if(v==null||isNaN(v))return"—";
+ let whole=Math.floor(v),e=Math.round((v-whole)*8);
+ if(e===8){whole++;e=0}
+ let f=["","1/8","1/4","3/8","1/2","5/8","3/4","7/8"][e];
+ return whole+(f?" "+f:"")+'"';
+}
+function fmtTapeDelta(d){
+ if(d==null||Math.abs(d)<0.0001)return"0";
+ const sign=d>0?"+":"−";
+ return sign+fmtFrac(Math.abs(d));
+}
+
+document.querySelectorAll(".bottomnav button").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll("section").forEach(s=>s.classList.toggle("show",s.id===b.dataset.tab));
+ document.querySelectorAll(".bottomnav button").forEach(x=>x.classList.toggle("active",x===b));
+ if(b.dataset.tab==="progress")renderProgress();
+ if(b.dataset.tab==="measurements")renderMeasurements();
+ if(b.dataset.tab==="calculator")renderCalculator();
+ if(b.dataset.tab==="more")renderTrend();
+});
+
+function allNames(){return [...new Set(Object.values(SLOTS).flat().flatMap(s=>s.variants))]}
+function exerciseHistory(name){
+ let out=[];
+ db.workouts.forEach(w=>(w.exercises||[]).forEach(e=>{
+  if(e.name===name)(e.sets||[]).forEach(s=>{
+   if(+s.reps>0&&(e.pullup||+s.weight>0))out.push({...s,date:w.date,pullup:!!e.pullup})
+  })
+ }));
+ return out.sort((a,b)=>b.date.localeCompare(a.date));
+}
+function bestRecent(name){
+ const h=exerciseHistory(name);if(!h.length)return null;
+ const latestDate=h[0].date;
+ return h.filter(x=>x.date===latestDate).map(s=>({...s,e1:epley(+s.weight||0,+s.reps)})).sort((a,b)=>b.e1-a.e1)[0];
+}
+function bestEver(name){
+ const h=exerciseHistory(name);if(!h.length)return null;
+ return h.map(s=>({...s,e1:epley(+s.weight||0,+s.reps)})).sort((a,b)=>b.e1-a.e1)[0];
+}
+function variantKey(day,idx){return day+"_"+idx}
+
+function renderWorkout(){
+ exerciseList.innerHTML="";
+ const day=workoutDay.value;
+ SLOTS[day].forEach((spec,ei)=>{
+  let selected=db.lastVariants[variantKey(day,ei)]||spec.def;
+  if(!spec.variants.includes(selected))selected=spec.def;
+
+  const recent=bestRecent(selected);
+  const best=bestEver(selected);
+  const inc=spec.group==="lower"?(+db.settings.lowerInc||5):(+db.settings.upperInc||5);
+
+  let recommendation="No prior performance — start conservatively.";
+  if(recent){
+   const top=spec.range[1];
+   if(selected==="Pull-Up"){
+     recommendation=`Last pull-up: ${recent.weight>0?"BW + "+recent.weight+" lb":"body weight"} × ${recent.reps}. ${recent.reps>=top?"Consider adding a small amount of external load.":"Add reps before adding external load."}`;
+   }else{
+     const next=recent.reps>=top?+recent.weight+inc:+recent.weight;
+     recommendation=recent.reps>=top
+       ?`Your strongest recent set reached the top of the range. Start around ${next} lb next time.`
+       :`Start around ${next} lb and try to beat ${recent.reps} reps before increasing load.`;
+   }
+  }
+
+  const c=document.createElement("div");c.className="card";
+  c.innerHTML=`
+   <div class="exerciseHead">
+     <div><div class="small">${spec.slot}</div><h3>${selected}</h3></div>
+     <div class="target">${spec.sets} × ${rangeText(spec.range)}</div>
+   </div>
+   ${spec.variants.length>1?`<label>Variation</label><select class="variant" data-e="${ei}">${spec.variants.map(v=>`<option ${v===selected?"selected":""}>${v}</option>`).join("")}</select>`:""}
+   <div class="small" style="margin-top:8px">Recent: ${recent?(selected==="Pull-Up"?(recent.weight>0?`BW + ${recent.weight} × ${recent.reps}`:`BW × ${recent.reps}`):`${recent.weight} × ${recent.reps}${recent.rpe?` @ RPE ${recent.rpe}`:""}`):"—"}${best&&selected!=="Pull-Up"?` · Best e1RM ${Math.round(best.e1)} lb`:""}</div>
+   <div class="suggestion"><strong>Next target:</strong> ${recommendation}</div>
+   <div class="setgrid">
+     <div class="head">Set</div><div class="head">${selected==="Pull-Up"?"Added lb":"Weight"}</div><div class="head">Reps</div><div class="head">RPE</div>
+     ${Array.from({length:spec.sets},(_,i)=>`
+       <div>${i+1}</div>
+       <input data-e="${ei}" data-s="${i}" data-f="weight" type="number" step=".5" placeholder="${selected==="Pull-Up"?"0":""}">
+       <input data-e="${ei}" data-s="${i}" data-f="reps" type="number">
+       <input data-e="${ei}" data-s="${i}" data-f="rpe" type="number" min="1" max="10" step=".5">`).join("")}
+   </div>`;
+  exerciseList.appendChild(c);
+ });
+
+ document.querySelectorAll(".variant").forEach(v=>v.onchange=()=>{
+   db.lastVariants[variantKey(day,+v.dataset.e)]=v.value;
+   save();renderWorkout();populateMenus();
+ });
+}
+function initWorkout(){
+ workoutDay.innerHTML=Object.keys(SLOTS).map(x=>`<option>${x}</option>`).join("");
+ const d=dayName(new Date());
+ workoutDay.value=SLOTS[d]?d:"Monday";
+ workoutDate.value=iso();
+ workoutDay.onchange=renderWorkout;
+ renderWorkout();
+}
+saveWorkout.onclick=()=>{
+ const day=workoutDay.value,ins=[...exerciseList.querySelectorAll("input")];
+ const exercises=SLOTS[day].map((spec,ei)=>{
+   const name=db.lastVariants[variantKey(day,ei)]||spec.def;
+   return{
+     name,pullup:name==="Pull-Up",slot:spec.slot,target:`${spec.sets} × ${rangeText(spec.range)}`,
+     sets:Array.from({length:spec.sets},(_,si)=>Object.fromEntries(["weight","reps","rpe"].map(f=>[
+       f, +(ins.find(x=>+x.dataset.e===ei&&+x.dataset.s===si&&x.dataset.f===f)?.value||0)
+     ])))
+   };
+ });
+ const entry={date:workoutDate.value,day,sessionRpe:+sessionRpe.value||0,notes:sessionNotes.value,exercises};
+ const i=db.workouts.findIndex(x=>x.date===entry.date&&x.day===entry.day);
+ if(i>=0)db.workouts[i]=entry;else db.workouts.push(entry);
+ db.workouts.sort((a,b)=>a.date.localeCompare(b.date));
+ save();alert("Workout saved.");renderWorkout();populateMenus();
+};
+
+function populateMenus(){
+ const names=allNames(),p=progressExercise.value,c=calcExercise.value;
+ progressExercise.innerHTML=names.map(x=>`<option>${x}</option>`).join("");
+ calcExercise.innerHTML=names.filter(x=>x!=="Pull-Up").map(x=>`<option>${x}</option>`).join("");
+ if(names.includes(p))progressExercise.value=p;
+ if([...calcExercise.options].some(o=>o.value===c))calcExercise.value=c;
+}
+progressExercise.onchange=renderProgress;
+function renderProgress(){
+ const name=progressExercise.value,h=exerciseHistory(name),best=bestEver(name);
+ if(!h.length){progressSummary.innerHTML='<p class="small">No history yet.</p>';progressHistory.innerHTML="";return}
+ const recent=h[0];
+ progressSummary.innerHTML=`<div class="metricgrid" style="margin-top:12px">
+   <div class="metric"><small>Last set</small><b>${name==="Pull-Up"?(recent.weight>0?"BW+"+recent.weight:"BW"):recent.weight}×${recent.reps}</b></div>
+   <div class="metric"><small>Best e1RM</small><b>${name==="Pull-Up"?"—":Math.round(best.e1)+" lb"}</b></div>
+ </div>`;
+ progressHistory.innerHTML=h.slice(0,16).map(x=>`<div class="historyItem"><b>${x.date}</b><div class="small">${name==="Pull-Up"?(x.weight>0?`BW + ${x.weight} lb`:"BW"):`${x.weight} lb`} × ${x.reps}${x.rpe?` @ RPE ${x.rpe}`:""}</div></div>`).join("");
+}
+
+function makeTapeInputs(){
+ tapeInputs.innerHTML=TAPE.map((n,i)=>`<div class="measureRow">
+   <div class="name">${n}</div>
+   <div><label>Inches</label><input class="whole" data-i="${i}" type="number" min="0"></div>
+   <div><label>Fraction</label><select class="frac" data-i="${i}">${FRACS.map(f=>`<option value="${f[1]}">${f[0]||"—"}</option>`).join("")}</select></div>
+ </div>`).join("");
+}
+saveMeasurements.onclick=()=>{
+ const tape={};
+ TAPE.forEach((n,i)=>{
+   const w=+document.querySelector(`.whole[data-i="${i}"]`).value||0;
+   const f=+document.querySelector(`.frac[data-i="${i}"]`).value||0;
+   if(w||f)tape[n]=w+f;
+ });
+ const e={date:measureDate.value,weight:+mWeight.value||0,bf:+mBf.value||0,lean:+mLean.value||0,fat:+mFat.value||0,tape};
+ const i=db.measurements.findIndex(x=>x.date===e.date);
+ if(i>=0)db.measurements[i]=e;else db.measurements.push(e);
+ db.measurements.sort((a,b)=>a.date.localeCompare(b.date));
+ save();alert("Measurements saved.");renderMeasurements();renderTrend();
+};
+function renderMeasurements(){
+ const m=[...db.measurements].sort((a,b)=>b.date.localeCompare(a.date)),x=m[0],prev=m[1];
+ if(!x){latestMeasurements.innerHTML='<p class="small">No measurements yet.</p>';return}
+ const h=(+db.settings.heightFt*12)+(+db.settings.heightIn);
+ const bmi=h&&x.weight?703*x.weight/(h*h):0;
+ let s=`<div class="metricgrid" style="margin-top:12px">
+   <div class="metric"><small>Weight</small><b>${x.weight||"—"}</b></div>
+   <div class="metric"><small>Body fat</small><b>${x.bf?x.bf+"%":"—"}</b></div>
+   <div class="metric"><small>Lean mass</small><b>${x.lean?x.lean+"%":"—"}</b></div>
+   <div class="metric"><small>BMI</small><b>${bmi?bmi.toFixed(1):"—"}</b></div>
+ </div><div style="margin-top:12px">`;
+ TAPE.forEach(n=>{
+   if(x.tape?.[n]!=null){
+     const d=prev?.tape?.[n]!=null?x.tape[n]-prev.tape[n]:null;
+     s+=`<div class="trend"><span>${n}</span><span><b>${fmtFrac(x.tape[n])}</b> <span class="small">${d==null?"":fmtTapeDelta(d)}</span></span></div>`;
+   }
+ });
+ latestMeasurements.innerHTML=s+"</div>";
+}
+
+function renderCalculator(){
+ const name=calcExercise.value,ref=bestRecent(name);
+ if(!ref){refLoad.textContent=refReps.textContent=ref1rm.textContent=refRpe.textContent="—";calcResult.textContent="Log a set to generate an estimate.";return}
+ const one=epley(+ref.weight,+ref.reps);
+ refLoad.textContent=ref.weight+" lb";refReps.textContent=ref.reps;ref1rm.textContent=Math.round(one)+" lb";refRpe.textContent=ref.rpe||"—";
+ const reps=+targetReps.value||8,rir=+targetRir.value||2,inc=+roundTo.value||5,f={1:.975,2:.95,3:.925}[rir];
+ const est=roundLoad(one/(1+reps/30)*f,inc);
+ calcResult.innerHTML=`Estimated starting load for <strong>${reps} reps at ~${rir} RIR</strong><div class="big" style="color:var(--green)">${est} lb</div><span class="small">Based on ${ref.weight} × ${ref.reps} from ${ref.date}. Validate with the first work set.</span>`;
+}
+[calcExercise,targetReps,targetRir,roundTo].forEach(x=>x.oninput=renderCalculator);
+
+function trendSeries(metric){
+ return db.measurements.map(m=>{
+   let v;
+   if(metric==="Weight")v=m.weight;
+   else if(metric==="Body Fat %")v=m.bf;
+   else if(metric==="Lean Mass %")v=m.lean;
+   else if(metric==="Fat Mass %")v=m.fat;
+   else v=m.tape?.[metric];
+   return{date:m.date,v:+v};
+ }).filter(x=>x.v>0);
+}
+function renderTrend(){
+ const metric=trendMetric.value,s=trendSeries(metric);
+ if(!s.length){trendStats.innerHTML='<div class="small">No data yet.</div>';trendChart.innerHTML="";return}
+ const first=s[0],last=s.at(-1),d=last.v-first.v,isTape=TAPE.includes(metric);
+ trendStats.innerHTML=`<div class="metric"><small>Current</small><b>${isTape?fmtFrac(last.v):last.v.toFixed(1)+(metric==="Weight"?" lb":"%")}</b></div>
+ <div class="metric"><small>From baseline</small><b>${isTape?fmtTapeDelta(d):((d>=0?"+":"")+d.toFixed(1)+(metric==="Weight"?" lb":"%"))}</b></div>`;
+ let vals=s.map(x=>x.v),min=Math.min(...vals),max=Math.max(...vals);
+ if(max===min){max+=1;min-=1}
+ const pts=s.map((x,i)=>[15+i*(290/Math.max(1,s.length-1)),150-(x.v-min)/(max-min)*125]);
+ trendChart.innerHTML=`<line class="gridLine" x1="15" y1="150" x2="305" y2="150"/>
+ <polyline class="chartLine" points="${pts.map(p=>p.join(",")).join(" ")}"/>
+ ${pts.map(p=>`<circle class="chartDot" cx="${p[0]}" cy="${p[1]}" r="4"/>`).join("")}`;
+}
+trendMetric.onchange=renderTrend;
+
+heightFt.value=db.settings.heightFt||"";
+heightIn.value=db.settings.heightIn||"";
+upperInc.value=db.settings.upperInc||5;
+lowerInc.value=db.settings.lowerInc||5;
+
+saveSettings.onclick=()=>{
+ db.settings={...db.settings,heightFt:+heightFt.value||0,heightIn:+heightIn.value||0,upperInc:+upperInc.value||5,lowerInc:+lowerInc.value||5};
+ save();alert("Settings saved.");renderWorkout();renderMeasurements();
+};
+exportData.onclick=()=>{
+ const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);a.download=`forge-backup-${iso()}.json`;a.click();URL.revokeObjectURL(a.href);
+};
+importData.onchange=async e=>{
+ try{db=JSON.parse(await e.target.files[0].text());save();location.reload()}catch{alert("Invalid backup.")}
+};
+resetData.onclick=()=>{if(confirm("Erase all Forge data?")){localStorage.removeItem(KEY);location.reload()}};
+
+measureDate.value=iso();
+makeTapeInputs();
+trendMetric.innerHTML=["Weight","Body Fat %","Lean Mass %","Fat Mass %",...TAPE].map(x=>`<option>${x}</option>`).join("");
+initWorkout();
+populateMenus();
+renderProgress();
+renderMeasurements();
+renderCalculator();
+renderTrend();
+</script>
+</body>
+</html>
