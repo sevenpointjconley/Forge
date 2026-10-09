@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090c0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Forge — PPL Hypertrophy</title>
+<style>
+:root{--bg:#090c0f;--panel:#11161b;--panel2:#171e25;--line:#29343e;--text:#f4f7f9;--muted:#a9b3bb;--green:#55d42f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:17px}
+header{position:sticky;top:0;z-index:20;background:#090c0ff5;border-bottom:1px solid var(--line);padding:14px 16px}h1{margin:0;font-size:27px;letter-spacing:.06em}
+header span,.small{font-size:13px;color:var(--muted)}main{max-width:880px;margin:auto;padding:15px 15px 105px}.card{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:16px;margin-bottom:13px}
+.ey{font-size:12px;letter-spacing:.12em;color:var(--muted);font-weight:800}.big{font-size:27px;font-weight:850;margin:5px 0}h3{font-size:20px;margin:4px 0 8px}
+label{display:block;color:var(--muted);font-size:14px;margin:10px 0 5px}input,select,textarea{display:block;width:100%;max-width:100%;min-width:0;padding:12px;border:1px solid var(--line);border-radius:11px;background:#0c1115;color:var(--text);font-size:16px}
+.row{display:flex;gap:9px;min-width:0}.row>*{flex:1;min-width:0}.head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.target{color:var(--green);font-weight:850;white-space:nowrap}
+.hint{padding:10px;margin:10px 0;border:1px solid #285339;border-radius:11px;background:#0d1712;font-size:14px}.grid{display:grid;grid-template-columns:38px 1fr 1fr 1fr;gap:7px;align-items:center}.grid .hd{text-align:center;color:var(--muted);font-size:11px}
+.primary,.secondary{width:100%;padding:13px;border-radius:11px;font:inherit;font-weight:850}.primary{border:0;background:var(--green);color:#071106}.secondary{border:1px solid var(--line);background:var(--panel2);color:var(--text)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:9px}.metric{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:11px}.metric small{display:block;color:var(--muted);font-size:12px}.metric b{font-size:21px}
+.item{padding:10px 0;border-bottom:1px solid var(--line)}.item:last-child{border:0}section{display:none}.show{display:block}
+.measure-grid{display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:end}canvas{width:100%;height:180px;background:#0c1115;border:1px solid var(--line);border-radius:12px}
+nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(5,1fr);background:#090c0ff8;border-top:1px solid var(--line);padding:7px 5px calc(7px + env(safe-area-inset-bottom));z-index:30}
+nav button{border:0;background:none;color:var(--muted);font-size:10px;padding:6px 2px}nav button b{display:block;font-size:18px}nav button.active{color:var(--green)}
+</style>
+</head>
+<body>
+<header><h1>FORGE</h1><span>PUSH · PULL · LEGS — HYPERTROPHY BLOCK</span></header>
+<main>
+<section id="workout" class="show">
+<div class="card"><div class="ey">WORKOUT</div><div class="row"><div><label>Session</label><select id="day"></select></div><div><label>Date</label><input id="date" type="date"></div></div></div>
+<div id="exercises"></div>
+<div class="card"><label>Session RPE</label><input id="sessionRpe" type="number" min="1" max="10" step=".5"><label>Notes</label><textarea id="notes" rows="3"></textarea><button class="primary" id="saveW">Save Workout</button></div>
+</section>
+
+<section id="progress">
+<div class="card"><div class="ey">PROGRESS</div><div class="big">Exercise history</div><label>Exercise</label><select id="pex"></select><div id="psum"></div></div>
+<div class="card"><div id="phist"></div></div>
+</section>
+
+<section id="measure">
+<div class="card"><div class="ey">MEASUREMENTS</div><div class="big">Body composition</div><label>Date</label><input id="mdate" type="date">
+<div class="row"><div><label>Weight (lb)</label><input id="mweight" type="number" step=".1"></div><div><label>Body fat %</label><input id="mbf" type="number" step=".1"></div></div>
+<div class="row"><div><label>Lean mass %</label><input id="mlm" type="number" step=".1"></div><div><label>Fat mass %</label><input id="mfm" type="number" step=".1"></div></div></div>
+<div class="card"><div class="ey">TAPE</div><div id="tapeInputs"></div><button class="primary" id="saveM">Save Measurements</button></div>
+<div class="card"><div class="ey">LATEST</div><div id="latestMeasure"></div></div>
+<div class="card"><div class="ey">TREND</div><label>Metric</label><select id="trendMetric"></select><canvas id="trendCanvas" width="720" height="180"></canvas><div id="trendStats" class="small" style="margin-top:8px"></div></div>
+</section>
+
+<section id="calculator">
+<div class="card"><div class="ey">LOAD CALCULATOR</div><div class="big">Starting estimate</div><label>Exercise</label><select id="cex"></select><div id="cref" class="hint"></div>
+<div class="row"><div><label>Target reps</label><input id="treps" type="number" value="10"></div><div><label>Target RIR</label><select id="trir"><option>1</option><option selected>2</option><option>3</option></select></div></div>
+<label>Round to</label><select id="roundTo"><option value="1">1 lb</option><option value="2.5">2.5 lb</option><option value="5" selected>5 lb</option></select><button class="primary" id="calcBtn">Estimate Load</button><div id="calcOut" class="big" style="margin-top:12px"></div></div>
+</section>
+
+<section id="more">
+<div class="card"><div class="ey">SETTINGS</div><div class="row"><div><label>Upper increment</label><input id="upperInc" type="number" step=".5"></div><div><label>Lower increment</label><input id="lowerInc" type="number" step=".5"></div></div>
+<div class="row"><div><label>Isolation increment</label><input id="isoInc" type="number" step=".5"></div><div><label>Height ft</label><input id="heightFt" type="number"></div></div><label>Height in</label><input id="heightIn" type="number"><button class="primary" id="saveS">Save Settings</button></div>
+<div class="card"><div class="ey">BACKUP</div><button class="secondary" id="export">Export Backup</button><label>Import Backup</label><input id="import" type="file" accept=".json"></div>
+<div class="card"><div class="ey">PROGRAM</div><div id="programSummary"></div></div>
+</section>
+</main>
+<nav><button data-t="workout" class="active"><b>▥</b>Workout</button><button data-t="progress"><b>↗</b>Progress</button><button data-t="measure"><b>⌁</b>Measure</button><button data-t="calculator"><b>∑</b>Calc</button><button data-t="more"><b>•••</b>More</button></nav>
+
+<script>
+const PROGRAM={
+Push:[
+{slot:"Bench Press",variants:["Barbell Bench Press","DB Bench Press"],def:"Barbell Bench Press",sets:3,range:[5,8],group:"upper",type:"compound"},
+{slot:"Incline Press",variants:["Incline DB Bench"],def:"Incline DB Bench",sets:3,range:[8,12],group:"upper",type:"compound"},
+{slot:"Overhead Press",variants:["DB Overhead Press","Barbell Overhead Press"],def:"DB Overhead Press",sets:2,range:[8,12],group:"upper",type:"compound"},
+{slot:"Chest Isolation",variants:["DB Fly"],def:"DB Fly",sets:2,range:[10,15],group:"upper",type:"isolation"},
+{slot:"Lateral Delt",variants:["DB Lateral Raise"],def:"DB Lateral Raise",sets:3,range:[12,20],group:"upper",type:"isolation"},
+{slot:"Pressdown",variants:["Cable Pressdown"],def:"Cable Pressdown",sets:3,range:[10,15],group:"upper",type:"isolation"},
+{slot:"Overhead Triceps",variants:["Overhead Cable Triceps Extension"],def:"Overhead Cable Triceps Extension",sets:2,range:[10,15],group:"upper",type:"isolation"}],
+Pull:[
+{slot:"Vertical Pull",variants:["Pull-Up"],def:"Pull-Up",sets:3,range:[6,10],group:"upper",type:"compound"},
+{slot:"Heavy Row",variants:["Bent-Over Barbell Row"],def:"Bent-Over Barbell Row",sets:3,range:[6,10],group:"upper",type:"compound"},
+{slot:"Pulldown",variants:["Lat Pulldown"],def:"Lat Pulldown",sets:3,range:[8,12],group:"upper",type:"compound"},
+{slot:"Cable Row",variants:["Seated Cable Row"],def:"Seated Cable Row",sets:2,range:[10,15],group:"upper",type:"compound"},
+{slot:"Rear Delt / Upper Back",variants:["Face Pull"],def:"Face Pull",sets:3,range:[12,20],group:"upper",type:"isolation"},
+{slot:"Curl",variants:["Barbell Curl","DB Curl"],def:"Barbell Curl",sets:3,range:[8,12],group:"upper",type:"isolation"},
+{slot:"Hammer Curl",variants:["Hammer Curl"],def:"Hammer Curl",sets:2,range:[10,15],group:"upper",type:"isolation"}],
+Legs:[
+{slot:"Squat",variants:["Back Squat","Front Squat"],def:"Back Squat",sets:3,range:[5,8],group:"lower",type:"compound"},
+{slot:"Hinge",variants:["Romanian Deadlift"],def:"Romanian Deadlift",sets:3,range:[8,10],group:"lower",type:"compound"},
+{slot:"Single Leg",variants:["Bulgarian Split Squat"],def:"Bulgarian Split Squat",sets:3,range:[8,12],group:"lower",type:"compound"},
+{slot:"Hip Thrust",variants:["Barbell Hip Thrust"],def:"Barbell Hip Thrust",sets:3,range:[8,12],group:"lower",type:"compound"},
+{slot:"Calves",variants:["Standing Calf Raise"],def:"Standing Calf Raise",sets:3,range:[10,15],group:"lower",type:"isolation"},
+{slot:"Core",variants:["Pallof Press","Weighted Crunch"],def:"Pallof Press",sets:2,range:[10,15],group:"core",type:"isolation"}]};
+
+const KEY="forge_lift_v2";
+let db=JSON.parse(localStorage.getItem(KEY)||"null");
+if(!db){
+ const prior=JSON.parse(localStorage.getItem("forge_lift_v1")||"null")||JSON.parse(localStorage.getItem("forge_v2")||"null");
+ db={workouts:Array.isArray(prior?.workouts)?prior.workouts:[],measurements:Array.isArray(prior?.measurements)?prior.measurements:[],settings:{upperInc:5,lowerInc:5,isoInc:2.5,heightFt:6,heightIn:1},lastVariants:prior?.lastVariants||{}};
+}
+db.workouts||=[];db.measurements||=[];db.settings||={};db.lastVariants||={};
+db.settings.upperInc??=5;db.settings.lowerInc??=5;db.settings.isoInc??=2.5;db.settings.heightFt??=6;db.settings.heightIn??=1;
+
+const $=x=>document.getElementById(x),today=()=>new Date().toISOString().slice(0,10),save=()=>localStorage.setItem(KEY,JSON.stringify(db)),rng=r=>r[0]===r[1]?String(r[0]):r[0]+"–"+r[1],e1=(w,r)=>w*(1+r/30);
+function names(){return [...new Set([...Object.values(PROGRAM).flat().flatMap(x=>x.variants),...db.workouts.flatMap(w=>(w.exercises||[]).map(e=>e.name))])].sort()}
+function hist(n){let a=[];db.workouts.forEach(w=>(w.exercises||[]).forEach(e=>e.name===n&&(e.sets||[]).forEach(s=>{if((+s.weight>0||n==="Pull-Up")&&+s.reps>0)a.push({...s,date:w.date,day:w.day})})));return a.sort((a,b)=>b.date.localeCompare(a.date))}
+function latest(n){let h=hist(n);if(!h.length)return[];return h.filter(x=>x.date===h[0].date)}
+function bestRecent(n){let a=latest(n).filter(x=>x.weight>0);return a.length?[...a].sort((x,y)=>e1(y.weight,y.reps)-e1(x.weight,x.reps))[0]:null}
+function bestEver(n){let a=hist(n).filter(x=>x.weight>0);return a.length?[...a].sort((x,y)=>e1(y.weight,y.reps)-e1(x.weight,x.reps))[0]:null}
+function inc(x){return x.type==="isolation"?(+db.settings.isoInc||2.5):x.group==="lower"?(+db.settings.lowerInc||5):(+db.settings.upperInc||5)}
+function selectedName(day,x){return db.lastVariants[day+":"+x.slot]||x.def}
+function rec(n,x){
+ let a=latest(n);if(!a.length)return`No prior ${n} session. Start conservatively and keep about 1–2 reps in reserve.`;
+ let v=a.filter(s=>+s.reps>0),top=x.range[1],all=v.length>=x.sets&&v.slice(0,x.sets).every(s=>+s.reps>=top),r=bestRecent(n)||v[0];
+ let rpes=v.filter(s=>+s.rpe>0),avg=rpes.length?rpes.reduce((q,s)=>q+(+s.rpe),0)/rpes.length:0;
+ if(all&&(!avg||avg<=9))return`Top of range reached across all working sets. Consider ${(+(r.weight||0)+inc(x)).toFixed(inc(x)%1?1:0)} lb next time.`;
+ return`Last session: ${r.weight||0} lb · reps ${v.map(s=>s.reps).join("/")}. Keep the load and beat total reps before adding weight.`;
+}
+function renderWorkout(){
+ let day=$("day").value;$("exercises").innerHTML="";
+ PROGRAM[day].forEach((x,ei)=>{
+  let n=selectedName(day,x),c=document.createElement("div");c.className="card";
+  c.innerHTML=`<div class="head"><div><div class="ey">${x.slot.toUpperCase()}</div>${x.variants.length>1?`<select class="variant" data-e="${ei}">${x.variants.map(v=>`<option ${v===n?"selected":""}>${v}</option>`).join("")}</select>`:`<h3>${n}</h3>`}</div><div class="target">${x.sets} × ${rng(x.range)}</div></div><div class="hint">${rec(n,x)}</div><div class="grid"><div class="hd">Set</div><div class="hd">${n==="Pull-Up"?"Added lb":"Weight"}</div><div class="hd">Reps</div><div class="hd">RPE</div>${Array.from({length:x.sets},(_,s)=>`<div>${s+1}</div><input data-s="${s}" data-f="weight" type="number" step=".5"><input data-s="${s}" data-f="reps" type="number"><input data-s="${s}" data-f="rpe" type="number" min="1" max="10" step=".5">`).join("")}</div>`;
+  $("exercises").appendChild(c);
+  let sel=c.querySelector(".variant");if(sel)sel.onchange=()=>{db.lastVariants[day+":"+x.slot]=sel.value;save();renderWorkout()}
+ })
+}
+$("saveW").onclick=()=>{
+ let day=$("day").value,cards=[...$("exercises").querySelectorAll(".card")],ex=PROGRAM[day].map((x,i)=>{let sel=cards[i].querySelector(".variant"),n=sel?sel.value:selectedName(day,x),ins=[...cards[i].querySelectorAll("input")];return{name:n,slot:x.slot,sets:Array.from({length:x.sets},(_,s)=>Object.fromEntries(["weight","reps","rpe"].map(f=>[f,+(ins.find(q=>+q.dataset.s===s&&q.dataset.f===f)?.value||0)])))}}),z={date:$("date").value,day,sessionRpe:+$("sessionRpe").value||0,notes:$("notes").value,exercises:ex},i=db.workouts.findIndex(w=>w.date===z.date&&w.day===z.day);i>=0?db.workouts[i]=z:db.workouts.push(z);save();alert("Workout saved.");renderWorkout();menus();progress()
+};
+function menus(){["pex","cex"].forEach(id=>{let old=$(id).value,$s=$(id);$s.innerHTML=names().map(n=>`<option>${n}</option>`).join("");if(names().includes(old))$s.value=old})}
+function progress(){let n=$("pex").value,h=hist(n);if(!h.length){$("psum").innerHTML='<p class="small">No history yet.</p>';$("phist").innerHTML="";return}let b=bestEver(n),l=h[0];$("psum").innerHTML=`<div class="metrics" style="margin-top:12px"><div class="metric"><small>Recent</small><b>${l.weight||0}×${l.reps}</b></div><div class="metric"><small>Best e1RM</small><b>${b?Math.round(e1(b.weight,b.reps))+" lb":"—"}</b></div></div>`;$("phist").innerHTML=h.slice(0,30).map(x=>`<div class="item"><b>${x.date}</b><div class="small">${x.weight||0} lb × ${x.reps}${x.rpe?" @ RPE "+x.rpe:""}</div></div>`).join("")}
+$("pex").onchange=progress;
+
+const TAPE=["Neck","Shoulders","Chest","Biceps — Right","Biceps — Left","Forearms — Right","Forearms — Left","Abs","Waist","Hips","Quads — Right","Quads — Left","Calves — Right","Calves — Left"],FR=[["0",0],["1/8",.125],["1/4",.25],["3/8",.375],["1/2",.5],["5/8",.625],["3/4",.75],["7/8",.875]],tk=n=>n.replace(/[^a-z0-9]/gi,"_").toLowerCase();
+$("tapeInputs").innerHTML=TAPE.map(n=>`<div class="measure-grid"><div><label>${n} — whole in</label><input id="w_${tk(n)}" type="number"></div><div><label>fraction</label><select id="f_${tk(n)}">${FR.map(x=>`<option>${x[0]}</option>`).join("")}</select></div></div>`).join("");
+function ff(v){if(v==null||isNaN(v))return"—";let sg=v<0?"−":"",a=Math.abs(v),w=Math.floor(a),e=Math.round((a-w)*8),L={0:"",1:"1/8",2:"1/4",3:"3/8",4:"1/2",5:"5/8",6:"3/4",7:"7/8",8:""};if(e===8){w++;e=0}let f=L[e];return sg+(w?w:"")+(w&&f?" ":"")+f+'"'}
+$("saveM").onclick=()=>{let tape={};TAPE.forEach(n=>{let k=tk(n),w=+$("w_"+k).value||0,t=$("f_"+k).value,f=(FR.find(x=>x[0]===t)||["0",0])[1];if(w||f)tape[n]=w+f});let m={date:$("mdate").value,weight:+$("mweight").value||0,bf:+$("mbf").value||0,lean:+$("mlm").value||0,fat:+$("mfm").value||0,tape},i=db.measurements.findIndex(x=>x.date===m.date);i>=0?db.measurements[i]=m:db.measurements.push(m);save();measure();alert("Measurements saved.")};
+function bmi(w){let i=(+db.settings.heightFt||0)*12+(+db.settings.heightIn||0);return w&&i?703*w/(i*i):0}
+function measure(){let a=[...db.measurements].sort((x,y)=>y.date.localeCompare(x.date)),m=a[0];if(!m){$("latestMeasure").innerHTML='<p class="small">No measurements saved.</p>';trend();return}$("latestMeasure").innerHTML=`<div class="metrics"><div class="metric"><small>Weight</small><b>${m.weight||"—"} lb</b></div><div class="metric"><small>BMI</small><b>${m.weight?bmi(m.weight).toFixed(1):"—"}</b></div><div class="metric"><small>Body fat</small><b>${m.bf||"—"}%</b></div><div class="metric"><small>Lean mass</small><b>${m.lean||"—"}%</b></div></div>${Object.entries(m.tape||{}).map(([k,v])=>`<div class="item"><b>${k}</b><div class="small">${ff(v)}</div></div>`).join("")}`;trend()}
+$("trendMetric").innerHTML=["Weight","Body Fat %",...TAPE].map(x=>`<option>${x}</option>`).join("");
+function tv(m,n){if(n==="Weight")return m.weight||null;if(n==="Body Fat %")return m.bf||null;return m.tape?.[n]??null}
+function trend(){let n=$("trendMetric").value,c=$("trendCanvas"),x=c.getContext("2d");x.clearRect(0,0,c.width,c.height);let p=[...db.measurements].sort((a,b)=>a.date.localeCompare(b.date)).map(m=>({d:m.date,v:tv(m,n)})).filter(q=>q.v!=null&&q.v!==0);if(p.length<2){$("trendStats").textContent="Need at least two entries for a trend.";return}let mi=Math.min(...p.map(q=>q.v)),ma=Math.max(...p.map(q=>q.v)),pad=25,sp=ma-mi||1;x.strokeStyle="#55d42f";x.lineWidth=3;x.beginPath();p.forEach((q,i)=>{let xx=pad+i*(c.width-2*pad)/(p.length-1),yy=c.height-pad-(q.v-mi)*(c.height-2*pad)/sp;i?x.lineTo(xx,yy):x.moveTo(xx,yy)});x.stroke();let d=p.at(-1).v-p[0].v;$("trendStats").textContent=`Current: ${n==="Weight"||n.includes("%")?p.at(-1).v.toFixed(1):ff(p.at(-1).v)} · From baseline: ${n==="Weight"||n.includes("%")?(d>=0?"+":"")+d.toFixed(1):ff(d)}`}
+$("trendMetric").onchange=trend;
+
+function cref(){let n=$("cex").value,r=bestRecent(n);$("cref").textContent=r?`Reference: ${r.weight} lb × ${r.reps}${r.rpe?" @ RPE "+r.rpe:""} · e1RM ${Math.round(e1(r.weight,r.reps))} lb`:"No reference set available."}
+$("cex").onchange=cref;$("calcBtn").onclick=()=>{let n=$("cex").value,r=bestRecent(n);if(!r||!r.weight){$("calcOut").textContent="No estimate available.";return}let reps=+$("treps").value||10,rir=+$("trir").value||2,rd=+$("roundTo").value||5,f={1:.975,2:.95,3:.925},t=(e1(r.weight,r.reps)/(1+reps/30))*f[rir];$("calcOut").textContent=Math.round(t/rd)*rd+" lb"};
+
+$("day").innerHTML=Object.keys(PROGRAM).map(x=>`<option>${x}</option>`).join("");let jd=new Date().getDay();$("day").value=jd===1?"Push":jd===3?"Pull":jd===5?"Legs":"Push";$("date").value=today();$("mdate").value=today();$("day").onchange=renderWorkout;$("date").onchange=renderWorkout;
+["upperInc","lowerInc","isoInc","heightFt","heightIn"].forEach(id=>$(id).value=db.settings[id]);
+$("saveS").onclick=()=>{["upperInc","lowerInc","isoInc","heightFt","heightIn"].forEach(id=>db.settings[id]=+$(id).value);save();renderWorkout();measure();alert("Settings saved.")};
+$("export").onclick=()=>{let b=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="forge-backup.json";a.click()};
+$("import").onchange=async e=>{try{db=JSON.parse(await e.target.files[0].text());save();location.reload()}catch{alert("Invalid backup.")}};
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("section").forEach(s=>s.classList.toggle("show",s.id===b.dataset.t));document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("active",x===b));if(b.dataset.t==="progress")progress();if(b.dataset.t==="measure")measure();if(b.dataset.t==="calculator")cref()});
+$("programSummary").innerHTML=Object.entries(PROGRAM).map(([d,e])=>`<div class="item"><b>${d}</b><div class="small">${e.map(x=>`${x.def} ${x.sets}×${rng(x.range)}`).join(" · ")}</div></div>`).join("");
+renderWorkout();menus();progress();measure();cref();save();
+</script>
+</body>
+</html>
